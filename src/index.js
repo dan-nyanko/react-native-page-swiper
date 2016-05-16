@@ -16,6 +16,7 @@ export default class Swiper extends Component {
     index: React.PropTypes.number,
     threshold: React.PropTypes.number,
     pager: React.PropTypes.bool,
+    beforePageChange: React.PropTypes.func,
     onPageChange: React.PropTypes.func,
     activeDotColor: React.PropTypes.string,
   };
@@ -25,6 +26,7 @@ export default class Swiper extends Component {
     pager: true,
     threshold: 25,
     onPageChange: () => {},
+    beforePageChange: () => { return true; },
     activeDotColor: 'blue',
   };
 
@@ -35,6 +37,16 @@ export default class Swiper extends Component {
       index: props.index,
       scrollValue: new Animated.Value(props.index),
       viewWidth: Dimensions.get('window').width,
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.hasOwnProperty('index')) {
+      let pageNumber = Math.max(0, Math.min(nextProps.index, this.props.children.length - 1))
+      this.setState({
+        index: pageNumber
+      });
+      Animated.spring(this.state.scrollValue, {toValue: pageNumber, friction: this.props.springFriction, tension: this.props.springTension}).start();
     }
   }
 
@@ -86,6 +98,13 @@ export default class Swiper extends Component {
   }
 
   goToPage(pageNumber) {
+    let shouldContinue = this.props.beforePageChange(pageNumber);
+    if (typeof shouldContinue !== 'undefined' && !shouldContinue) {
+      // bounce back
+      Animated.spring(this.state.scrollValue, {toValue: this.state.index, friction: this.props.springFriction, tension: this.props.springTension}).start();
+      return;
+    };
+
     // Don't scroll outside the bounds of the screens
     pageNumber = Math.max(0, Math.min(pageNumber, this.props.children.length - 1))
     this.setState({
@@ -93,7 +112,6 @@ export default class Swiper extends Component {
     })
 
     Animated.spring(this.state.scrollValue, {toValue: pageNumber, friction: this.props.springFriction, tension: this.props.springTension}).start();
-
     this.props.onPageChange(pageNumber)
   }
 
@@ -134,7 +152,7 @@ export default class Swiper extends Component {
           active={ this.state.index }
           activeColor={ this.props.activeDotColor }
           total={ this.props.children.length }
-          style={{ position: 'absolute', bottom: 50, width: this.state.viewWidth }}
+          style={{ position: 'absolute', bottom: 25, width: this.state.viewWidth }}
         />}
       </View>
     )
