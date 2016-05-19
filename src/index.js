@@ -58,9 +58,15 @@ export default class Swiper extends Component {
       let newIndex = this.state.index
 
       if (relativeGestureDistance < -0.5 || (relativeGestureDistance < 0 && vx <= -0.5)) {
-        newIndex = newIndex + 1
+        const shouldContinue = this.shouldContinue(newIndex);
+        if (shouldContinue) {
+          newIndex = newIndex + 1
+        }
       } else if (relativeGestureDistance > 0.5 || (relativeGestureDistance > 0 && vx >= 0.5)) {
-        newIndex = newIndex - 1
+        const shouldContinue = this.shouldContinue(newIndex);
+        if (shouldContinue) {
+          newIndex = newIndex - 1
+        }
       }
 
       this.goToPage(newIndex)
@@ -72,14 +78,15 @@ export default class Swiper extends Component {
 
         // Claim responder if it's a horizontal pan
         if (Math.abs(gestureState.dx) > Math.abs(gestureState.dy)) {
-          return true
+          return true;
         }
 
         // and only if it exceeds the threshold
         if (threshold - Math.abs(gestureState.dx) > 0) {
-          return false
+          return false;
         }
 
+        return false;
       },
 
       // Touch is released, scroll to the one that you're closest to
@@ -97,14 +104,15 @@ export default class Swiper extends Component {
     })
   }
 
-  goToPage(pageNumber) {
+  shouldContinue(pageNumber) {
     let shouldContinue = this.props.beforePageChange(pageNumber);
     if (typeof shouldContinue !== 'undefined' && !shouldContinue) {
-      // bounce back
-      Animated.spring(this.state.scrollValue, {toValue: this.state.index, friction: this.props.springFriction, tension: this.props.springTension}).start();
-      return;
+      return false;
     };
+    return true;
+  }
 
+  goToPage(pageNumber) {
     // Don't scroll outside the bounds of the screens
     pageNumber = Math.max(0, Math.min(pageNumber, this.props.children.length - 1))
     this.setState({
