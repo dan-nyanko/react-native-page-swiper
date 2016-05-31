@@ -28,6 +28,7 @@ export default class Swiper extends Component {
     onPageChange: () => {},
     beforePageChange: () => { return true; },
     activeDotColor: 'blue',
+    containerStyle: {},
   };
 
   constructor(props) {
@@ -147,7 +148,7 @@ export default class Swiper extends Component {
     }
 
     return (
-      <View style={{flex: 1, overflow: 'hidden'}} onLayout={this.handleLayout.bind(this)}>
+      <View style={[{flex: 1, overflow: 'hidden'}, this.props.containerStyle]} onLayout={this.handleLayout.bind(this)}>
         <Animated.View
           {...this._panResponder.panHandlers}
           style={[sceneContainerStyle, {transform: [{translateX}]}]}
